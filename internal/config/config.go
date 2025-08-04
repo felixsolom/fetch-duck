@@ -15,8 +15,13 @@ type GoogleConfig struct {
 	Scopes       []string
 }
 
+type DBConfig struct {
+	URL string
+}
+
 type Config struct {
 	Google GoogleConfig
+	DB     DBConfig
 }
 
 func Load() (*Config, error) {
@@ -24,6 +29,7 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	cfg := &Config{
 		Google: GoogleConfig{
 			ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
@@ -32,6 +38,9 @@ func Load() (*Config, error) {
 			Scopes: []string{
 				"https://www.googleapis.com/auth/gmail.readonly",
 			},
+		},
+		DB: DBConfig{
+			URL: os.Getenv("DATABASE_URL"),
 		},
 	}
 	return cfg, nil
