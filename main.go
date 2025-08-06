@@ -2,18 +2,34 @@ package main
 
 import (
 	"database/sql"
+	"embed"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"os"
+	"time"
 
 	"github.com/felixsolom/fetch-duck/internal/config"
 	"github.com/felixsolom/fetch-duck/internal/database"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
 )
+
+//go:embed all:static
+var staticFiles embed.FS
 
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("PORT environment variable is not set")
 	}
 
 	db, err := sql.Open("libsql", cfg.DB.URL)
@@ -29,4 +45,42 @@ func main() {
 	oauth2config := cfg.Google.ToOAuth2Confg()
 	fmt.Println("OAuth2 endpoint URL:", oauth2config.Endpoint.AuthURL)
 	_ = dbQueries
+
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*", "http://*"},
+		AllowedMethods:   []string{"GET", "PUT", "POST", "DELETE", "HEAD", "OPTION"},
+		AllowedHeaders:   []string{"User-Agent", "Content-Type", "Accept", "Accept-Encoding", "Accept-Language", "Cache-Control", "Connection", "DNT", "Host", "Origin", "Pragma", "Referer"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		f, err := staticFiles.Open("static/index.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer f.Close()
+		if _, err := io.Copy(w, f); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+
+	v1Router := chi.NewRouter()
+
+	v1Router.Get("/healthz", handlerReadiness)
+
+	r.Mount("/v1", v1Router)
+	srv := &http.Server{
+		Addr:              ":" + port,
+		Handler:           r,
+		ReadHeaderTimeout: time.Second * 10,
+	}
+
+	log.Printf("Serving on port: %s\n", port)
+	log.Fatal(srv.ListenAndServe())
 }
