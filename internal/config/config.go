@@ -34,9 +34,10 @@ func Load() (*Config, error) {
 		Google: GoogleConfig{
 			ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 			ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-			RedirectURL:  "http://localhost:8080",
+			RedirectURL:  "http://localhost:8080/v1/oauth/google/callback",
 			Scopes: []string{
 				"https://www.googleapis.com/auth/gmail.readonly",
+				"https://www.googleapis.com/auth/userinfo.email",
 			},
 		},
 		DB: DBConfig{

@@ -39,7 +39,7 @@ func (cfg *apiConfig) handlerOAuthGoogleCallback(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// getting http client from uauth.Token
+	// getting http client from oauth.Token
 	client := cfg.GoogleConfig.Client(context.Background(), token)
 	userInfo, err := googleauth.GetGoogleUserInfo(client)
 	if err != nil {

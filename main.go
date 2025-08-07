@@ -42,9 +42,10 @@ func main() {
 	fmt.Println("Configuration loaded and database connection established")
 	fmt.Println("Google Client ID:", cfg.Google.ClientID)
 
-	oauth2config := cfg.Google.ToOAuth2Confg()
-	fmt.Println("OAuth2 endpoint URL:", oauth2config.Endpoint.AuthURL)
-	_ = dbQueries
+	apiCfg := &apiConfig{
+		DB:           dbQueries,
+		GoogleConfig: cfg.Google.ToOAuth2Confg(),
+	}
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -73,6 +74,9 @@ func main() {
 	v1Router := chi.NewRouter()
 
 	v1Router.Get("/healthz", handlerReadiness)
+
+	v1Router.Get("/oauth/google/login", apiCfg.handlerOAuthGoogleLogin)
+	v1Router.Get("/oauth/google/callback", apiCfg.handlerOAuthGoogleCallback)
 
 	r.Mount("/v1", v1Router)
 	srv := &http.Server{
