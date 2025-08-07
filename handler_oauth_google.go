@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/felixsolom/fetch-duck/internal/database"
+	"github.com/felixsolom/fetch-duck/internal/gmailservice"
 	"github.com/felixsolom/fetch-duck/internal/googleauth"
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
@@ -60,5 +61,17 @@ func (cfg *apiConfig) handlerOAuthGoogleCallback(w http.ResponseWriter, r *http.
 		return
 	}
 	log.Printf("Successfully authenticated user: %s", userInfo.Email)
+	log.Println("Authentication successful. Proceeding to scan email...")
+	service, err := gmailservice.New(client)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Error creating gmail service", err)
+		return
+	} else {
+		err = service.ScanForInvoices(context.Background())
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Error scanning for invoices", err)
+			return
+		}
+	}
 	respondWithJSON(w, http.StatusOK, userInfo)
 }
