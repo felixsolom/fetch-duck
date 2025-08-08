@@ -29,23 +29,44 @@ func (s *Service) GetMessage(messageID string) (*gmail.Message, error) {
 func (s *Service) ScanForInvoices(ctx context.Context) error {
 	user := "me"
 	query := "has:attachment invoice"
+	pageToken := ""
 
 	log.Printf("Performing Gmail scan for user %s with query: %s", user, query)
-	req := s.Users.Messages.List(user).Q(query)
-	resp, err := req.Do()
-	if err != nil {
-		return fmt.Errorf("failed to retrieve messages: %w", err)
-	}
-	if len(resp.Messages) == 0 {
-		return fmt.Errorf("No messages found matching the query.")
-	}
-	log.Printf("Found %d message(s):", len(resp.Messages))
-	for _, msg := range resp.Messages {
-		fullMsg, err := s.GetMessage(msg.Id)
-		if err != nil {
-			log.Printf("Failed to get message %s: %v", msg.Id, err)
+	for {
+		req := s.Users.Messages.List(user).Q(query)
+		if pageToken != "" {
+			req.PageToken(pageToken)
 		}
-		log.Printf("- Message ID: %s, Message Snippet: %s", fullMsg.Id, fullMsg.Snippet)
+		resp, err := req.Do()
+		if err != nil {
+			return fmt.Errorf("failed to retrieve messages: %w", err)
+		}
+		if len(resp.Messages) == 0 {
+			fmt.Errorf("No messages found matching the query.")
+			break
+		}
+		log.Printf("Processing %d message(s) on this page...", len(resp.Messages))
+
+		for _, msg := range resp.Messages {
+			fullMsg, err := s.Users.Messages.Get("me", msg.Id).Format("full").Do()
+			if err != nil {
+				log.Printf("Failed to get full message details for %s: %v", msg.Id, err)
+				continue
+			}
+
+			for _, part := range fullMsg.Payload.Parts {
+				if part.Filename != "" && part.Body != nil && part.Body.AttachmentId != "" {
+					log.Printf("Found Attachment! MessageID: %s, Filemane: %s, AtachmentID: %s",
+						fullMsg.Id, part.Filename, part.Body.AttachmentId)
+				}
+			}
+		}
+		if resp.NextPageToken != "" {
+			pageToken = resp.NextPageToken
+		} else {
+			break
+		}
 	}
+	log.Printf("Finished scanning all pages")
 	return nil
 }
