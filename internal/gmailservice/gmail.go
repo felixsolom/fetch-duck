@@ -42,7 +42,7 @@ func (s *Service) ScanForInvoices(ctx context.Context) error {
 			return fmt.Errorf("failed to retrieve messages: %w", err)
 		}
 		if len(resp.Messages) == 0 {
-			fmt.Errorf("No messages found matching the query.")
+			fmt.Errorf("no messages found matching the query.")
 			break
 		}
 		log.Printf("Processing %d message(s) on this page...", len(resp.Messages))

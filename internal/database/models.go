@@ -4,6 +4,10 @@
 
 package database
 
+import (
+	"database/sql"
+)
+
 type GoogleAuth struct {
 	UserID       string
 	CreatedAt    int64
@@ -11,6 +15,22 @@ type GoogleAuth struct {
 	TokenExpiry  int64
 	AccessToken  string
 	RefreshToken string
+}
+
+type StagedInvoice struct {
+	ID             string
+	UserID         string
+	GmailMessageID string
+	GmailThreadID  interface{}
+	Text           interface{}
+	Status         string
+	Sender         string
+	Subject        string
+	Snippet        sql.NullString
+	HasAttachment  bool
+	ReceivedAt     int64
+	CreatedAt      int64
+	UpdatedAt      int64
 }
 
 type User struct {
