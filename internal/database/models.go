@@ -17,6 +17,13 @@ type GoogleAuth struct {
 	RefreshToken string
 }
 
+type Session struct {
+	Token     string
+	UserID    string
+	Expiry    int64
+	CreatedAt int64
+}
+
 type StagedInvoice struct {
 	ID             string
 	UserID         string
