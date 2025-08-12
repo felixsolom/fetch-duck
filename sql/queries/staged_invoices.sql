@@ -39,3 +39,8 @@ UPDATE staged_invoices
 SET status = ?, updated_at = ?
 WHERE id = ? AND user_id = ?; 
 --
+
+-- name: GetStagedInvoicesByMessageId :many
+SELECT * FROM staged_invoices
+WHERE user_id = ? AND gmail_message_id = ?;
+--

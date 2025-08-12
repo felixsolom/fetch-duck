@@ -3,6 +3,7 @@ package googleauth
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/felixsolom/fetch-duck/internal/database"
+	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 )
 
@@ -43,33 +45,46 @@ func GetGoogleUserInfo(client *http.Client) (*GoogleUserInfo, error) {
 	return &userInfo, nil
 }
 
-func StoreTokenInDB(ctx context.Context, db *database.Queries, user *database.User, token *oauth2.Token) error {
+func StoreTokenInDB(ctx context.Context, db *database.Queries, userInfo *GoogleUserInfo, token *oauth2.Token) (string, error) {
 	now := time.Now().Unix()
 
-	_, err := db.GetUser(ctx, user.Email)
+	existingUser, err := db.GetUser(ctx, userInfo.Email)
 	if err != nil {
-		err = db.CreateUser(ctx, database.CreateUserParams{
-			ID:        user.ID,
-			Email:     user.Email,
-			CreatedAt: now,
-			UpdatedAt: now,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to create user: %w", err)
+		if err == sql.ErrNoRows {
+			newUserId := uuid.New().String()
+			log.Printf("User %s not found. Creating new user with id %s", userInfo.Email, newUserId)
+			err = db.CreateUser(ctx, database.CreateUserParams{
+				ID:        newUserId,
+				Email:     userInfo.Email,
+				CreatedAt: now,
+				UpdatedAt: now,
+			})
+			if err != nil {
+				return "", fmt.Errorf("failed to create user: %w", err)
+			}
+			existingUser, err = db.GetUser(ctx, userInfo.Email)
+			if err != nil {
+				return "", fmt.Errorf("failed to get user after creation: %w", err)
+			}
+		} else {
+			return "", fmt.Errorf("failed to get user: %w", err)
 		}
-		log.Printf("Created new user: %s", user.Email)
 	}
 
 	params := database.UpsertGoogleAuthParams{
-		UserID:       user.ID,
+		UserID:       existingUser.ID,
 		AccessToken:  token.AccessToken,
 		RefreshToken: token.RefreshToken,
 		TokenExpiry:  token.Expiry.Unix(),
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
-	log.Printf("Upserting token for user: %s", user.Email)
-	return db.UpsertGoogleAuth(ctx, params)
+
+	err = db.UpsertGoogleAuth(ctx, params)
+	if err != nil {
+		return "", fmt.Errorf("failed to upsert token: %w", err)
+	}
+	return existingUser.ID, nil
 }
 
 func GenerateOauthStateString(w http.ResponseWriter, r *http.Request) string {

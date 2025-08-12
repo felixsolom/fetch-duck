@@ -26,14 +26,14 @@ INSERT INTO staged_invoices (
 ) VALUES (
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
-RETURNING id, user_id, gmail_message_id, gmail_thread_id, text, status, sender, subject, snippet, has_attachment, received_at, created_at, updated_at
+RETURNING id, user_id, gmail_message_id, gmail_thread_id, status, sender, subject, snippet, has_attachment, received_at, created_at, updated_at
 `
 
 type CreateStagedInvoiceParams struct {
 	ID             string
 	UserID         string
 	GmailMessageID string
-	GmailThreadID  interface{}
+	GmailThreadID  string
 	Sender         string
 	Subject        string
 	Snippet        sql.NullString
@@ -63,7 +63,6 @@ func (q *Queries) CreateStagedInvoice(ctx context.Context, arg CreateStagedInvoi
 		&i.UserID,
 		&i.GmailMessageID,
 		&i.GmailThreadID,
-		&i.Text,
 		&i.Status,
 		&i.Sender,
 		&i.Subject,
@@ -78,7 +77,7 @@ func (q *Queries) CreateStagedInvoice(ctx context.Context, arg CreateStagedInvoi
 
 const getStagedInvoice = `-- name: GetStagedInvoice :one
 
-SELECT id, user_id, gmail_message_id, gmail_thread_id, text, status, sender, subject, snippet, has_attachment, received_at, created_at, updated_at FROM staged_invoices
+SELECT id, user_id, gmail_message_id, gmail_thread_id, status, sender, subject, snippet, has_attachment, received_at, created_at, updated_at FROM staged_invoices
 WHERE id = ? AND user_id = ?
 `
 
@@ -95,7 +94,6 @@ func (q *Queries) GetStagedInvoice(ctx context.Context, arg GetStagedInvoicePara
 		&i.UserID,
 		&i.GmailMessageID,
 		&i.GmailThreadID,
-		&i.Text,
 		&i.Status,
 		&i.Sender,
 		&i.Subject,
@@ -108,9 +106,56 @@ func (q *Queries) GetStagedInvoice(ctx context.Context, arg GetStagedInvoicePara
 	return i, err
 }
 
+const getStagedInvoicesByMessageId = `-- name: GetStagedInvoicesByMessageId :many
+
+SELECT id, user_id, gmail_message_id, gmail_thread_id, status, sender, subject, snippet, has_attachment, received_at, created_at, updated_at FROM staged_invoices
+WHERE user_id = ? AND gmail_message_id = ?
+`
+
+type GetStagedInvoicesByMessageIdParams struct {
+	UserID         string
+	GmailMessageID string
+}
+
+func (q *Queries) GetStagedInvoicesByMessageId(ctx context.Context, arg GetStagedInvoicesByMessageIdParams) ([]StagedInvoice, error) {
+	rows, err := q.db.QueryContext(ctx, getStagedInvoicesByMessageId, arg.UserID, arg.GmailMessageID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []StagedInvoice
+	for rows.Next() {
+		var i StagedInvoice
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.GmailMessageID,
+			&i.GmailThreadID,
+			&i.Status,
+			&i.Sender,
+			&i.Subject,
+			&i.Snippet,
+			&i.HasAttachment,
+			&i.ReceivedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listStagedInvoicesByUser = `-- name: ListStagedInvoicesByUser :many
 
-SELECT id, user_id, gmail_message_id, gmail_thread_id, text, status, sender, subject, snippet, has_attachment, received_at, created_at, updated_at FROM staged_invoices
+SELECT id, user_id, gmail_message_id, gmail_thread_id, status, sender, subject, snippet, has_attachment, received_at, created_at, updated_at FROM staged_invoices
 WHERE 
     user_id = ? 
     AND status = 'pending_review'
@@ -149,7 +194,6 @@ func (q *Queries) ListStagedInvoicesByUser(ctx context.Context, arg ListStagedIn
 			&i.UserID,
 			&i.GmailMessageID,
 			&i.GmailThreadID,
-			&i.Text,
 			&i.Status,
 			&i.Sender,
 			&i.Subject,

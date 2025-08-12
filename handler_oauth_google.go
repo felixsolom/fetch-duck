@@ -8,7 +8,6 @@ import (
 	"github.com/felixsolom/fetch-duck/internal/database"
 	"github.com/felixsolom/fetch-duck/internal/gmailservice"
 	"github.com/felixsolom/fetch-duck/internal/googleauth"
-	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 )
 
@@ -49,29 +48,27 @@ func (cfg *apiConfig) handlerOAuthGoogleCallback(w http.ResponseWriter, r *http.
 		return
 	}
 
-	user := &database.User{
-		ID:    uuid.New().String(),
-		Email: userInfo.Email,
-	}
-
-	err = googleauth.StoreTokenInDB(context.Background(), cfg.DB, user, token)
+	userID, err := googleauth.StoreTokenInDB(context.Background(), cfg.DB, userInfo, token)
 	if err != nil {
 		log.Printf("failed to store token %v\n", err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 	log.Printf("Successfully authenticated user: %s", userInfo.Email)
-	log.Println("Authentication successful. Proceeding to scan email...")
-	service, err := gmailservice.New(client)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Error creating gmail service", err)
-		return
-	} else {
-		err = service.ScanForInvoices(context.Background())
+
+	go func() {
+		log.Println("Authentication successfull. Starting background scan and stage process...")
+		gmailService, err := gmailservice.New(client)
 		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, "Error scanning for invoices", err)
+			log.Printf("Error creating gmail service: %v", err)
 			return
 		}
-	}
+		err = gmailService.ScanAndStageInvoices(context.Background(), cfg.DB, userID)
+		if err != nil {
+			log.Printf("Error scanning and staging invoices: %v", err)
+			return
+		}
+	}()
+
 	respondWithJSON(w, http.StatusOK, userInfo)
 }

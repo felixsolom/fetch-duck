@@ -21,8 +21,7 @@ type StagedInvoice struct {
 	ID             string
 	UserID         string
 	GmailMessageID string
-	GmailThreadID  interface{}
-	Text           interface{}
+	GmailThreadID  string
 	Status         string
 	Sender         string
 	Subject        string

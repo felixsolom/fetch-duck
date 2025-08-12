@@ -5,7 +5,7 @@ CREATE TABLE staged_invoices(
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
     gmail_message_id TEXT NOT NULL,
-    gmail_thread_id, TEXT NOT NULL,
+    gmail_thread_id TEXT NOT NULL,
 
     status TEXT NOT NULL DEFAULT 'pending_review',
 
