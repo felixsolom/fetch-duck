@@ -74,10 +74,17 @@ func main() {
 	v1Router := chi.NewRouter()
 
 	v1Router.Get("/healthz", handlerReadiness)
-
 	v1Router.Get("/oauth/google/login", apiCfg.handlerOAuthGoogleLogin)
 	v1Router.Get("/oauth/google/callback", apiCfg.handlerOAuthGoogleCallback)
 
+	authedRouter := chi.NewRouter()
+	authedRouter.Use(apiCfg.authMiddleware)
+
+	authedRouter.Get("/invoices/staged/", apiCfg.handlerListStagedInvoices)
+	authedRouter.Post("/invoices/{invoiceID}/approve", apiCfg.handlerApproveInvoice)
+	authedRouter.Post("/invoices/{invoiceID}/reject", apiCfg.handlerRejectInvoice)
+
+	v1Router.Mount("/", authedRouter)
 	r.Mount("/v1", v1Router)
 	srv := &http.Server{
 		Addr:              ":" + port,
