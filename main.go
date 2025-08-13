@@ -78,7 +78,7 @@ func main() {
 	v1Router.Get("/oauth/google/callback", apiCfg.handlerOAuthGoogleCallback)
 	v1Router.Get("/auth/success", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Write([]byte(`<h1>Login Successful!</h1><p><a href="/v1/invoices/staged">Click here toview your staged invoices.</a></p>`))
+		w.Write([]byte(`<h1>Login Successful!</h1><p><a href="/v1/invoices/staged">Click here to view your staged invoices.</a></p>`))
 	})
 
 	authedRouter := chi.NewRouter()

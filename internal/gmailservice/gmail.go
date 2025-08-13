@@ -3,6 +3,8 @@ package gmailservice
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -118,4 +120,29 @@ func (s *Service) ScanAndStageInvoices(ctx context.Context, db *database.Queries
 	}
 	log.Println("Finished scanning all pages")
 	return nil
+}
+
+func (s *Service) GetFirstAttachment(messageID string) (data []byte, filenane string, err error) {
+	fullMsg, err := s.Users.Messages.Get("me", messageID).Format("full").Do()
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get full message")
+	}
+
+	for _, part := range fullMsg.Payload.Parts {
+		if part.Filename != "" && part.Body != nil && part.Body.AttachmentId != "" {
+			attachmentID := part.Body.AttachmentId
+			attachmentBody, err := s.Users.Messages.Attachments.Get("me", messageID, attachmentID).Do()
+			if err != nil {
+				log.Printf("Failed to get attachment data for ID %s: %v", attachmentID, err)
+				continue
+			}
+			decodedData, err := base64.URLEncoding.DecodeString(attachmentBody.Data)
+			if err != nil {
+				log.Printf("Failed to decode attachment data for ID %s: %v", attachmentID, err)
+				continue
+			}
+			return decodedData, part.Filename, nil
+		}
+	}
+	return nil, "", errors.New("no valid attachment found in message")
 }
