@@ -75,6 +75,8 @@ func (cfg *apiConfig) handlerOAuthGoogleCallback(w http.ResponseWriter, r *http.
 		return
 	}
 
+	log.Printf("DEBUG: Created session and setting cookie with token: %s", sessionToken)
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    sessionToken,
@@ -98,5 +100,5 @@ func (cfg *apiConfig) handlerOAuthGoogleCallback(w http.ResponseWriter, r *http.
 		}
 	}()
 
-	http.Redirect(w, r, "/v1/invoices/staged", http.StatusSeeOther)
+	http.Redirect(w, r, "/v1/auth/success", http.StatusSeeOther)
 }

@@ -76,11 +76,15 @@ func main() {
 	v1Router.Get("/healthz", handlerReadiness)
 	v1Router.Get("/oauth/google/login", apiCfg.handlerOAuthGoogleLogin)
 	v1Router.Get("/oauth/google/callback", apiCfg.handlerOAuthGoogleCallback)
+	v1Router.Get("/auth/success", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write([]byte(`<h1>Login Successful!</h1><p><a href="/v1/invoices/staged">Click here toview your staged invoices.</a></p>`))
+	})
 
 	authedRouter := chi.NewRouter()
 	authedRouter.Use(apiCfg.authMiddleware)
 
-	authedRouter.Get("/invoices/staged/", apiCfg.handlerListStagedInvoices)
+	authedRouter.Get("/invoices/staged", apiCfg.handlerListStagedInvoices)
 	authedRouter.Post("/invoices/{invoiceID}/approve", apiCfg.handlerApproveInvoice)
 	authedRouter.Post("/invoices/{invoiceID}/reject", apiCfg.handlerRejectInvoice)
 

@@ -45,7 +45,7 @@ const getUserBySessionToken = `-- name: GetUserBySessionToken :one
 
 SELECT users.id, users.created_at, users.updated_at, users.email FROM users
 JOIN sessions ON users.id = sessions.user_id
-WHERE sessions.token = ? AND sessions.expiry = ?
+WHERE sessions.token = ? AND sessions.expiry > ?
 `
 
 type GetUserBySessionTokenParams struct {
