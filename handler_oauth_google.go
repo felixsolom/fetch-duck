@@ -100,5 +100,5 @@ func (cfg *apiConfig) handlerOAuthGoogleCallback(w http.ResponseWriter, r *http.
 		}
 	}()
 
-	http.Redirect(w, r, "/v1/auth/success", http.StatusSeeOther)
+	http.Redirect(w, r, "/api/v1/auth/success", http.StatusSeeOther)
 }

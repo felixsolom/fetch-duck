@@ -1,90 +1,46 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+ <html lang="en">
+ <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fetch Duck</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --celeste-dark-blue: #1E1E2E;
-            --celeste-purple: #4D2D5B;
-            --celeste-pink: #F07178;
-            --celeste-light-blue: #78D1F0;
-            --pixel-size: 4px;
-        }
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Fetch Duck - Invoice Processor</title>
+     <link rel="stylesheet" href="styles.css">
+ </head>
+ <body>
+     <header>
+         <h1>Fetch Duck</h1>
+         <div id="user-info"></div>
+     </header>
 
-        body {
-            background-color: var(--celeste-dark-blue);
-            background-image: 
-                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
-                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
-                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px),
-                radial-gradient(rgba(255,255,255,.4), rgba(255,255,255,.1) 2px, transparent 30px);
-            background-size: 550px 550px, 350px 350px, 250px 250px, 150px 150px; 
-            background-position: 0 0, 40px 60px, 130px 270px, 70px 100px;
-            font-family: 'Press Start 2P', cursive;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: white;
-            text-align: center;
-        }
+     <main>
+         <!-- Logged Out View -->
+         <div id="logged-out-view">
+             <h2>Welcome</h2>
+             <p>Log in with your Google account to start processing invoices.</p>
+            <a href="/api/v1/oauth/google/login" class="button">Login with Google</a>
+         </div>
 
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 40px;
-        }
+         <!-- Logged In View -->
+         <div id="logged-in-view" style="display: none;">
+             <h2>Staged Invoices</h2>
+             <p>Review the invoices found in your Gmail account.</p>
+             <button id="scan-button">Scan for New Invoices</button>
+             <table id="invoices-table">
+                 <thead>
+                     <tr>
+                         <th>Received</th>
+                         <th>From</th>
+                         <th>Subject</th>
+                         <th>Actions</th>
+                     </tr>
+                 </thead>
+                 <tbody>
+                     <!-- Invoice rows will be inserted here by JavaScript -->
+                 </tbody>
+             </table>
+         </div>
+     </main>
 
-        h1 {
-            font-size: 3rem;
-            color: var(--celeste-light-blue);
-            text-shadow: 3px 3px 0px var(--celeste-purple);
-        }
-
-        .google-login-btn {
-            background-color: var(--celeste-pink);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1rem;
-            cursor: pointer;
-            font-family: 'Press Start 2P', cursive;
-            border: calc(var(--pixel-size) / 2) solid #000;
-            box-shadow: 
-                inset -var(--pixel-size) -var(--pixel-size) 0 0 #000,
-                inset var(--pixel-size) var(--pixel-size) 0 0 #fff;
-            image-rendering: pixelated;
-            transition: background-color 0.2s;
-        }
-
-        .google-login-btn:hover {
-            background-color: #d86168;
-        }
-        
-        
-
-    </style>
-</head>
-<body>
-    <div class="container">
-        
-        <h1>Fetch Duck</h1>
-        <button id="google-login-btn" class="google-login-btn">
-            Sign in with Google
-        </button>
-    </div>
-
-    <script>
-        document.getElementById('google-login-btn').addEventListener('click', function() {
-            window.location.href = '/v1/oauth/google/login';
-        });
-    </script>
-</body>
-</html>
+     <script src="app.js"></script>
+ </body>
+ </html>

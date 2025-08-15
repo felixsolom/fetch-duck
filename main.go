@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-	"io"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -53,43 +53,38 @@ func main() {
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "PUT", "POST", "DELETE", "HEAD", "OPTION"},
-		AllowedHeaders:   []string{"User-Agent", "Content-Type", "Accept", "Accept-Encoding", "Accept-Language", "Cache-Control", "Connection", "DNT", "Host", "Origin", "Pragma", "Referer"},
+		AllowedHeaders:   []string{"*"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		f, err := staticFiles.Open("static/index.html")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer f.Close()
-		if _, err := io.Copy(w, f); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+	apiRouter := chi.NewRouter()
+
+	apiRouter.Get("/healthz", handlerReadiness)
+	apiRouter.Get("/oauth/google/login", apiCfg.handlerOAuthGoogleLogin)
+	apiRouter.Get("/oauth/google/callback", apiCfg.handlerOAuthGoogleCallback)
+	apiRouter.Get("/auth/success", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	})
 
-	v1Router := chi.NewRouter()
-
-	v1Router.Get("/healthz", handlerReadiness)
-	v1Router.Get("/oauth/google/login", apiCfg.handlerOAuthGoogleLogin)
-	v1Router.Get("/oauth/google/callback", apiCfg.handlerOAuthGoogleCallback)
-	v1Router.Get("/auth/success", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Write([]byte(`<h1>Login Successful!</h1><p><a href="/v1/invoices/staged">Click here to view your staged invoices.</a></p>`))
+	apiRouter.Group(func(authedRouter chi.Router) {
+		authedRouter.Use(apiCfg.authMiddleware)
+		authedRouter.Get("auth/status", apiCfg.handlerAuthStatus)
+		authedRouter.Post("auth/logout", apiCfg.handlerLogout)
+		authedRouter.Get("/invoices/staged", apiCfg.handlerListStagedInvoices)
+		authedRouter.Post("/invoices/{invoiceID}/approve", apiCfg.handlerApproveInvoice)
+		authedRouter.Post("/invoices/{invoiceID}/reject", apiCfg.handlerRejectInvoice)
 	})
 
-	authedRouter := chi.NewRouter()
-	authedRouter.Use(apiCfg.authMiddleware)
+	r.Mount("/api/v1", apiRouter)
 
-	authedRouter.Get("/invoices/staged", apiCfg.handlerListStagedInvoices)
-	authedRouter.Post("/invoices/{invoiceID}/approve", apiCfg.handlerApproveInvoice)
-	authedRouter.Post("/invoices/{invoiceID}/reject", apiCfg.handlerRejectInvoice)
+	staticFS, err := fs.Sub(staticFiles, "static")
+	if err != nil {
+		log.Fatalf("Couldn't serve static files: %s", err)
+	}
+	r.Handle("/*", http.FileServer(http.FS(staticFS)))
 
-	v1Router.Mount("/", authedRouter)
-	r.Mount("/v1", v1Router)
 	srv := &http.Server{
 		Addr:              ":" + port,
 		Handler:           r,

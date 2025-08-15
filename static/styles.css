@@ -1,0 +1,126 @@
+/* Import the pixel font */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* --- Base Styles --- */
+body {
+    font-family: 'Press Start 2P', cursive;
+    margin: 0;
+    background-color: #1E1E2E; /* Deep space blue */
+    color: #F4F4F9; /* Off-white text */
+    text-shadow: 2px 2px #000; /* Classic pixel font shadow */
+    image-rendering: pixelated; /* Ensure images don't get blurry if we add them */
+}
+
+/* --- Header --- */
+header {
+    background-color: #312244; /* Dark purple */
+    color: #FFD700; /* Gold for title */
+    padding: 1.5rem 2rem;
+    border-bottom: 4px solid #4A4A4A;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    text-shadow: 3px 3px #D32F2F; /* Red shadow for emphasis */
+}
+
+#user-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #C0C0C0; /* Lighter grey for user info */
+}
+
+/* --- Main Content --- */
+main {
+    padding: 1rem 2rem;
+}
+
+h2 {
+    color: #E040FB; /* Bright magenta */
+    font-size: 1.5rem;
+}
+
+/* --- Buttons and UI Elements --- */
+.button, #logout-button, #scan-button, .approve-btn, .reject-btn {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #4A4A4A;
+    color: #FFF;
+    padding: 12px 18px;
+    border: 2px solid #1E1E2E;
+    box-shadow: 4px 4px 0px #000; /* 3D pixel button effect */
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-shadow: 1px 1px #000;
+    transition: all 0.1s ease-in-out;
+    margin: 5px;
+}
+
+.button:hover, #logout-button:hover, #scan-button:hover, .approve-btn:hover, .reject-btn:hover {
+    background-color: #5A5A5A;
+    box-shadow: 2px 2px 0px #000;
+    transform: translate(2px, 2px);
+}
+
+.button:active, #logout-button:active, #scan-button:active, .approve-btn:active, .reject-btn:active {
+    box-shadow: 0px 0px 0px #000;
+    transform: translate(4px, 4px);
+}
+
+#logout-button {
+    background-color: #C70039; /* Strawberry red */
+}
+
+#scan-button {
+    background-color: #007bff; /* A contrasting blue */
+    margin-bottom: 1rem;
+}
+
+/* --- Table Styles --- */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 1rem;
+    border: 4px solid #4A4A4A;
+}
+
+th, td {
+    padding: 14px;
+    text-align: left;
+    border-bottom: 2px dashed #4A4A4A;
+    font-size: 0.8rem;
+}
+
+th {
+    background-color: #312244; /* Dark purple header */
+    color: #FFD700;
+    font-size: 1rem;
+}
+
+tr:nth-child(even) {
+    background-color: #28283E; /* Slightly lighter blue for alternating rows */
+}
+
+td.actions {
+    text-align: right;
+}
+
+.approve-btn {
+    background-color: #28a745; /* Green for go */
+}
+
+.reject-btn {
+    background-color: #ffc107; /* Yellow for caution */
+}
+
+/* --- Views --- */
+#logged-in-view, #logged-out-view {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 2rem;
+    border: 4px solid #4A4A4A;
+}
