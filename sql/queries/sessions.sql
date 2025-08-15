@@ -11,3 +11,8 @@ SELECT users.* FROM users
 JOIN sessions ON users.id = sessions.user_id
 WHERE sessions.token = ? AND sessions.expiry > ?;
 --
+
+-- name: DeleteSession :exec
+DELETE FROM sessions
+WHERE token = ?;
+--

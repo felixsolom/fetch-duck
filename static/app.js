@@ -4,10 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
      const userInfoDiv = document.getElementById('user-info');
      const invoicesTableBody = document.querySelector('#invoices-table tbody');
 
-     // Function to check user's auth status
      const checkAuthStatus = async () => {
          try {
-             // We'll create this new endpoint in our backend
              const response = await fetch('/api/v1/auth/status');
              if (response.ok) {
                  const user = await response.json();
@@ -68,7 +66,6 @@ document.addEventListener('DOMContentLoaded', () => {
      };
 
      const logout = async () => {
-         // We'll create this new endpoint in our backend
          await fetch('/api/v1/auth/logout', { method: 'POST' });
          showLoggedOutView();
      };

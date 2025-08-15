@@ -70,8 +70,8 @@ func main() {
 
 	apiRouter.Group(func(authedRouter chi.Router) {
 		authedRouter.Use(apiCfg.authMiddleware)
-		authedRouter.Get("auth/status", apiCfg.handlerAuthStatus)
-		authedRouter.Post("auth/logout", apiCfg.handlerLogout)
+		authedRouter.Get("/auth/status", apiCfg.handlerAuthStatus)
+		authedRouter.Post("/auth/logout", apiCfg.handlerLogout)
 		authedRouter.Get("/invoices/staged", apiCfg.handlerListStagedInvoices)
 		authedRouter.Post("/invoices/{invoiceID}/approve", apiCfg.handlerApproveInvoice)
 		authedRouter.Post("/invoices/{invoiceID}/reject", apiCfg.handlerRejectInvoice)

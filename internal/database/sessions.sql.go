@@ -41,6 +41,17 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 	return i, err
 }
 
+const deleteSession = `-- name: DeleteSession :exec
+
+DELETE FROM sessions
+WHERE token = ?
+`
+
+func (q *Queries) DeleteSession(ctx context.Context, token string) error {
+	_, err := q.db.ExecContext(ctx, deleteSession, token)
+	return err
+}
+
 const getUserBySessionToken = `-- name: GetUserBySessionToken :one
 
 SELECT users.id, users.created_at, users.updated_at, users.email FROM users
