@@ -128,21 +128,38 @@ func (s *Service) GetFirstAttachment(messageID string) (data []byte, filenane st
 		return nil, "", fmt.Errorf("failed to get full message")
 	}
 
-	for _, part := range fullMsg.Payload.Parts {
-		if part.Filename != "" && part.Body != nil && part.Body.AttachmentId != "" {
-			attachmentID := part.Body.AttachmentId
-			attachmentBody, err := s.Users.Messages.Attachments.Get("me", messageID, attachmentID).Do()
-			if err != nil {
-				log.Printf("Failed to get attachment data for ID %s: %v", attachmentID, err)
-				continue
+	part, attachmentID := findAttachmemtPart(fullMsg.Payload)
+	if part == nil {
+		return nil, "", errors.New("No valid attachments found in message")
+	}
+
+	attachmentBody, err := s.Users.Messages.Attachments.Get("me", messageID, attachmentID).Do()
+	if err != nil {
+		return nil, "", fmt.Errorf("Failed to get attachment data for ID %w", err)
+	}
+
+	decodedData, err := base64.URLEncoding.DecodeString(attachmentBody.Data)
+	if err != nil {
+		return nil, "", fmt.Errorf("Failed to decode attachment data %w", err)
+	}
+
+	return decodedData, part.Filename, nil
+}
+
+func findAttachmemtPart(part *gmail.MessagePart) (*gmail.MessagePart, string) {
+	if part.Filename != "" && part.Body != nil && part.Body.AttachmentId != "" {
+		return part, part.Body.AttachmentId
+	}
+
+	if len(part.Parts) > 0 {
+		for _, subPart := range part.Parts {
+			foundPart, attachmentID := findAttachmemtPart(subPart)
+			if foundPart != nil {
+				log.Printf("Found valid Email attachment in parts: %s", attachmentID)
+				return foundPart, attachmentID
 			}
-			decodedData, err := base64.URLEncoding.DecodeString(attachmentBody.Data)
-			if err != nil {
-				log.Printf("Failed to decode attachment data for ID %s: %v", attachmentID, err)
-				continue
-			}
-			return decodedData, part.Filename, nil
 		}
 	}
-	return nil, "", errors.New("no valid attachment found in message")
+	log.Printf("No valid attachments were found in parts")
+	return nil, ""
 }

@@ -124,3 +124,43 @@ td.actions {
     padding: 2rem;
     border: 4px solid #4A4A4A;
 }
+
+.pagination-controls {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.pagination-controls button {
+    margin: 0 10px;
+}
+
+.pagination-controls button:disabled {
+    background-color: #312244;
+    color: #5A5A5A;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+#notification area {
+    padding: 0;
+    text-align: center;
+    min-height: 2rem;
+}
+
+.notification {
+    padding: 1rem;
+    margin: 0;
+    font-size: 0.9rem;
+    text-shadow: none;
+}
+
+.notification.success {
+    background-color: #28a745;
+    color: white;
+}
+
+.notification.error {
+    background-color: #C70039;
+    color: white;
+}

@@ -37,11 +37,11 @@ func (cfg *apiConfig) handlerListStagedInvoices(w http.ResponseWriter, r *http.R
 	}
 
 	now := time.Now()
-	twoMonthAgo := now.AddDate(0, -2, 0)
+	oneYearAgo := now.AddDate(-1, 0, 0)
 
 	params := database.ListStagedInvoicesByUserParams{
 		UserID:       user.ID,
-		ReceivedAt:   twoMonthAgo.Unix(),
+		ReceivedAt:   oneYearAgo.Unix(),
 		ReceivedAt_2: now.Unix(),
 		Limit:        int64(limit),
 		Offset:       int64(offset),

@@ -11,16 +11,14 @@
          <h1>Fetch Duck</h1>
          <div id="user-info"></div>
      </header>
-
+     <div id="notification-area"></div>
      <main>
-         <!-- Logged Out View -->
          <div id="logged-out-view">
              <h2>Welcome</h2>
              <p>Log in with your Google account to start processing invoices.</p>
             <a href="/api/v1/oauth/google/login" class="button">Login with Google</a>
          </div>
 
-         <!-- Logged In View -->
          <div id="logged-in-view" style="display: none;">
              <h2>Staged Invoices</h2>
              <p>Review the invoices found in your Gmail account.</p>
@@ -35,9 +33,13 @@
                      </tr>
                  </thead>
                  <tbody>
-                     <!-- Invoice rows will be inserted here by JavaScript -->
                  </tbody>
              </table>
+         <div class="pagination controls">
+            <button id="prev-page-btn" disabled>Previous</button>
+            <span id="page-info">Page 1</span>
+            <button id="next-page-btn">Next</button>
+         </div>
          </div>
      </main>
 
