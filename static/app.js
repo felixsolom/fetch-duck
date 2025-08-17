@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+     const inviteView = document.getElementById('invite-view');
+     const inviteForm = document.getElementById('invite-form');
+     const inviteCodeInput = document.getElementById('invite-code-input');
      const loggedOutView = document.getElementById('logged-out-view');
      const loggedInView = document.getElementById('logged-in-view');
      const userInfoDiv = document.getElementById('user-info');
@@ -10,6 +13,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
      let currentPage = 1;
      const limit = 25;
+
+     inviteForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const code = inviteCodeInput.value;
+            try {
+                const response = await fetch('/api/v1/auth/verify-invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code })
+                });
+                if (response.ok) {
+                    // If code is correct, hide invite view and check auth status
+                    inviteView.style.display = 'none';
+                    checkAuthStatus();
+                } else {
+                    showNotification('Invalid invite code.', 'error');
+                }
+            } catch (error) {
+                console.error('Error verifying invite code:', error);
+                showNotification('An error occurred.', 'error');
+            }
+        });
 
      const showNotification = (message, type = 'success') => {
         notificationArea.innerHTML = `
@@ -38,9 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
              const response = await fetch('/api/v1/auth/status');
              if (response.ok) {
                  const user = await response.json();
+                 inviteView.style.display = 'none';
+                 loggedOutView.style.display = 'none';
                  showLoggedInView(user);
              } else {
-                 showLoggedOutView();
+                 loggedOutView.style.display = 'block';
              }
          } catch (error) {
              console.error('Error checking auth status:', error);

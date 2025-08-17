@@ -13,7 +13,14 @@
      </header>
      <div id="notification-area"></div>
      <main>
-         <div id="logged-out-view">
+        <div id="invite-view">
+                <h2>Enter Invite Code</h2>
+                 <form id="invite-form">
+                     <input type="password" id="invite-code-input" placeholder="Invite Code" required>
+                     <button type="submit">Enter</button>
+                 </form>
+            </div>
+         <div id="logged-out-view" style="display: none;">
              <h2>Welcome</h2>
              <p>Log in with your Google account to start processing invoices.</p>
             <a href="/api/v1/oauth/google/login" class="button">Login with Google</a>

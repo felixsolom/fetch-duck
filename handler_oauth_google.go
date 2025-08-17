@@ -11,15 +11,15 @@ import (
 	"github.com/felixsolom/fetch-duck/internal/database"
 	"github.com/felixsolom/fetch-duck/internal/gmailservice"
 	"github.com/felixsolom/fetch-duck/internal/googleauth"
-	"golang.org/x/oauth2"
 )
 
-type apiConfig struct {
-	DB           *database.Queries
-	GoogleConfig *oauth2.Config
-}
-
 func (cfg *apiConfig) handlerOAuthGoogleLogin(w http.ResponseWriter, r *http.Request) {
+	_, err := r.Cookie("pre_auth_token")
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "Access denied", err)
+		return
+	}
+
 	state := googleauth.GenerateOauthStateString(w, r)
 	url := cfg.GoogleConfig.AuthCodeURL(state)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)

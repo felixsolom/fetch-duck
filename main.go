@@ -16,10 +16,17 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
+	"golang.org/x/oauth2"
 )
 
 //go:embed all:static
 var staticFiles embed.FS
+
+type apiConfig struct {
+	DB           *database.Queries
+	GoogleConfig *oauth2.Config
+	App          config.AppConfig
+}
 
 func main() {
 	cfg, err := config.Load()
@@ -45,6 +52,7 @@ func main() {
 	apiCfg := &apiConfig{
 		DB:           dbQueries,
 		GoogleConfig: cfg.Google.ToOAuth2Confg(),
+		App:          cfg.App,
 	}
 
 	r := chi.NewRouter()
@@ -62,6 +70,7 @@ func main() {
 	apiRouter := chi.NewRouter()
 
 	apiRouter.Get("/healthz", handlerReadiness)
+	apiRouter.Post("auth/verify-invite", apiCfg.handlerVerifyInvite)
 	apiRouter.Get("/oauth/google/login", apiCfg.handlerOAuthGoogleLogin)
 	apiRouter.Get("/oauth/google/callback", apiCfg.handlerOAuthGoogleCallback)
 	apiRouter.Get("/auth/success", func(w http.ResponseWriter, r *http.Request) {
