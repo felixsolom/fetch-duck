@@ -12,10 +12,25 @@ document.addEventListener('DOMContentLoaded', () => {
      const limit = 25;
 
      const showNotification = (message, type = 'success') => {
-        notificationArea.innerHTML = `<p class="notification ${type}">${message}</p>`;
-        setTimeout(() => {
-            notificationArea.innerHTML = '';
-        }, 3000);
+        notificationArea.innerHTML = `
+        <div class="notification ${type}">
+            <span>${message}</span>
+            <button class="close-btn">&times;</button>
+        </div>
+        `; 
+
+        const closeButton = notificationArea.querySelector('.close-btn');
+        const notificationDiv = notificationArea.querySelector('.notification');
+
+        const closeNotification = () => {
+            if (notificationArea) {
+                notificationArea.innerHTML = '';
+            }
+        };
+
+        closeButton.addEventListener('click', closeNotification);
+
+        setTimeout(closeNotification, 5000);
      };
 
      const checkAuthStatus = async () => {

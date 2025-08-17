@@ -142,10 +142,15 @@ td.actions {
     transform: none;
 }
 
-#notification area {
+#notification-area {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
     padding: 0;
     text-align: center;
-    min-height: 2rem;
+    min-height: auto;
 }
 
 .notification {
@@ -153,6 +158,10 @@ td.actions {
     margin: 0;
     font-size: 0.9rem;
     text-shadow: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
 }
 
 .notification.success {
@@ -163,4 +172,19 @@ td.actions {
 .notification.error {
     background-color: #C70039;
     color: white;
+}
+
+.notification .close-btn {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: white;
+    font-family: 'Arial', sans-serif;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-shadow: none;
 }
