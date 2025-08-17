@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -19,9 +20,14 @@ type DBConfig struct {
 	URL string
 }
 
+type AppConfig struct {
+	InviteCode string
+}
+
 type Config struct {
 	Google GoogleConfig
 	DB     DBConfig
+	App    AppConfig
 }
 
 func Load() (*Config, error) {
@@ -43,6 +49,13 @@ func Load() (*Config, error) {
 		DB: DBConfig{
 			URL: os.Getenv("DATABASE_URL"),
 		},
+		App: AppConfig{
+			InviteCode: os.Getenv("APP_SECRET_INVITE_CODE"),
+		},
+	}
+
+	if cfg.App.InviteCode == "" {
+		log.Fatal("CRITICAL: APP_SECRET_INVITE_CODE environment variable is not set")
 	}
 	return cfg, nil
 }
