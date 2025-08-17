@@ -70,7 +70,7 @@ func main() {
 	apiRouter := chi.NewRouter()
 
 	apiRouter.Get("/healthz", handlerReadiness)
-	apiRouter.Post("auth/verify-invite", apiCfg.handlerVerifyInvite)
+	apiRouter.Post("/auth/verify-invite", apiCfg.handlerVerifyInvite)
 	apiRouter.Get("/oauth/google/login", apiCfg.handlerOAuthGoogleLogin)
 	apiRouter.Get("/oauth/google/callback", apiCfg.handlerOAuthGoogleCallback)
 	apiRouter.Get("/auth/success", func(w http.ResponseWriter, r *http.Request) {

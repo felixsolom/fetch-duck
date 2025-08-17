@@ -24,9 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({ code: code })
                 });
                 if (response.ok) {
-                    // If code is correct, hide invite view and check auth status
                     inviteView.style.display = 'none';
-                    checkAuthStatus();
+                    loggedOutView.style.display = 'block';
                 } else {
                     showNotification('Invalid invite code.', 'error');
                 }
@@ -170,5 +169,22 @@ document.addEventListener('DOMContentLoaded', () => {
          }
      });
 
-     checkAuthStatus();
+     const init = async () => {
+            try {
+                const response = await fetch('/api/v1/auth/status');
+                if (response.ok) {
+                    const user = await response.json();
+                    inviteView.style.display = 'none';
+                    loggedOutView.style.display = 'none';
+                    showLoggedInView(user);
+                } else {
+                    inviteView.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error during initial auth check:', error);
+                inviteView.style.display = 'block';
+            }
+        };
+        
+     init()
  });
