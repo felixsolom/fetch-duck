@@ -31,11 +31,18 @@ type AWSConfig struct {
 	BucketName      string
 }
 
+type AccountingConfig struct {
+	APIKey    string
+	APISecret string
+	BaseURL   string
+}
+
 type Config struct {
-	Google GoogleConfig
-	DB     DBConfig
-	App    AppConfig
-	AWS    AWSConfig
+	Google     GoogleConfig
+	DB         DBConfig
+	App        AppConfig
+	AWS        AWSConfig
+	Accounting AccountingConfig
 }
 
 func Load() (*Config, error) {
@@ -66,6 +73,11 @@ func Load() (*Config, error) {
 			Region:          os.Getenv("S3_REGION"),
 			BucketName:      os.Getenv("S3_BUCKET"),
 		},
+		Accounting: AccountingConfig{
+			APIKey:    os.Getenv("GREEN_INVOICE_API_KEY"),
+			APISecret: os.Getenv("GREEN_INVOICE_API_SECRET"),
+			BaseURL:   os.Getenv("GREEN_INVOICE_BASE_URL"),
+		},
 	}
 
 	if cfg.App.InviteCode == "" {
@@ -74,6 +86,10 @@ func Load() (*Config, error) {
 
 	if cfg.AWS.AccessKeyID == "" || cfg.AWS.SecretAccessKey == "" || cfg.AWS.BucketName == "" {
 		log.Fatal("CRITICAL: AWS configuration (bucket name, keys) is not fully set")
+	}
+
+	if cfg.Accounting.APIKey == "" || cfg.Accounting.APISecret == "" || cfg.Accounting.BaseURL == "" {
+		log.Fatal("CRITICAL: Accounting credentials (API key, secret, base url) are not fully set")
 	}
 
 	return cfg, nil
