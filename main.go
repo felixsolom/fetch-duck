@@ -12,6 +12,7 @@ import (
 
 	"github.com/felixsolom/fetch-duck/internal/config"
 	"github.com/felixsolom/fetch-duck/internal/database"
+	"github.com/felixsolom/fetch-duck/internal/s3service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
@@ -26,6 +27,7 @@ type apiConfig struct {
 	DB           *database.Queries
 	GoogleConfig *oauth2.Config
 	App          config.AppConfig
+	S3           *s3service.Service
 }
 
 func main() {
@@ -33,6 +35,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
+
+	s3Svc, err := s3service.New(cfg.AWS)
+	if err != nil {
+		log.Fatalf("Failed to create s3 service: %v", err)
+	}
+	log.Println("S3 services initialized successfully.")
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -53,6 +61,7 @@ func main() {
 		DB:           dbQueries,
 		GoogleConfig: cfg.Google.ToOAuth2Confg(),
 		App:          cfg.App,
+		S3:           s3Svc,
 	}
 
 	r := chi.NewRouter()
