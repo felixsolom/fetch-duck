@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 
@@ -64,8 +62,6 @@ func (cfg *apiConfig) handlerApproveInvoice(w http.ResponseWriter, r *http.Reque
 	}
 	log.Printf("User %s is approving invoice %s", user.Email, invoiceID)
 
-	//aws server logic for later
-
 	//staged invoice details for db
 	stagedInvoice, err := cfg.DB.GetStagedInvoice(r.Context(), database.GetStagedInvoiceParams{
 		ID:     invoiceID,
@@ -104,19 +100,14 @@ func (cfg *apiConfig) handlerApproveInvoice(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	tempDir := "temp_invoices"
-	if err := os.MkdirAll(tempDir, 0755); err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to create temp directory", err)
-		return
-	}
-
-	savePath := filepath.Join(tempDir, fmt.Sprintf("approved-%s-%s", stagedInvoice.ID, filename))
-	err = os.WriteFile(savePath, attachmentData, 0644)
+	//S3 block
+	s3key := fmt.Sprintf("invoices/%s/%s/%s", user.ID, stagedInvoice.ID, filename)
+	err = cfg.S3.UploadFile(r.Context(), s3key, attachmentData)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Failed to save file", err)
+		respondWithError(w, http.StatusInternalServerError, "Failed to upload file to S3", err)
 		return
 	}
-	log.Printf("Successfully saved approved invoice to %s", savePath)
+	log.Printf("Successfully uploaded file to S3 at key: %s", s3key)
 
 	err = cfg.DB.UpdateStagedInvoiceStatus(r.Context(), database.UpdateStagedInvoiceStatusParams{
 		ID:        invoiceID,
@@ -129,9 +120,8 @@ func (cfg *apiConfig) handlerApproveInvoice(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	respondWithJSON(w, http.StatusOK, map[string]string{
-		"status":    "approved",
-		"filename":  filename,
-		"save_path": savePath,
+		"status": "approved",
+		"s3_key": s3key,
 	})
 }
 
