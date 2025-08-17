@@ -24,10 +24,18 @@ type AppConfig struct {
 	InviteCode string
 }
 
+type AWSConfig struct {
+	AccessKeyID     string
+	SecretAccessKey string
+	Region          string
+	BucketName      string
+}
+
 type Config struct {
 	Google GoogleConfig
 	DB     DBConfig
 	App    AppConfig
+	AWS    AWSConfig
 }
 
 func Load() (*Config, error) {
@@ -52,11 +60,22 @@ func Load() (*Config, error) {
 		App: AppConfig{
 			InviteCode: os.Getenv("APP_SECRET_INVITE_CODE"),
 		},
+		AWS: AWSConfig{
+			AccessKeyID:     os.Getenv("AWS_ACCESS_KEY_ID"),
+			SecretAccessKey: os.Getenv("AWS_SECRET_ACCESS_KEY"),
+			Region:          os.Getenv("S3_REGION"),
+			BucketName:      os.Getenv("S3_BUCKET"),
+		},
 	}
 
 	if cfg.App.InviteCode == "" {
 		log.Fatal("CRITICAL: APP_SECRET_INVITE_CODE environment variable is not set")
 	}
+
+	if cfg.AWS.AccessKeyID == "" || cfg.AWS.SecretAccessKey == "" || cfg.AWS.BucketName == "" {
+		log.Fatal("CRITICAL: AWS configuration (bucket name, keys) is not fully set")
+	}
+
 	return cfg, nil
 }
 
