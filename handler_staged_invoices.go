@@ -100,14 +100,22 @@ func (cfg *apiConfig) handlerApproveInvoice(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	//S3 block
+	//S3 block bucket upload
 	s3key := fmt.Sprintf("invoices/%s/%s/%s", user.ID, stagedInvoice.ID, filename)
 	err = cfg.S3.UploadFile(r.Context(), s3key, attachmentData)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Failed to upload file to S3", err)
 		return
 	}
-	log.Printf("Successfully uploaded file to S3 at key: %s", s3key)
+	log.Printf("Successfully uploaded invoice to S3 at key: %s", s3key)
+
+	//Green Invoice uplaod logic
+	log.Printf("Staging file %s with accountig services...", filename)
+	err = cfg.Accounting.StagedInvoiceFile(r.Context(), filename, attachmentData)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Failed to stage invoice with accounting service", err)
+		return
+	}
 
 	err = cfg.DB.UpdateStagedInvoiceStatus(r.Context(), database.UpdateStagedInvoiceStatusParams{
 		ID:        invoiceID,
@@ -120,8 +128,9 @@ func (cfg *apiConfig) handlerApproveInvoice(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	respondWithJSON(w, http.StatusOK, map[string]string{
-		"status": "approved",
-		"s3_key": s3key,
+		"status":   "approved",
+		"filename": filename,
+		"s3_key":   s3key,
 	})
 }
 
