@@ -21,11 +21,34 @@ type Service struct {
 	tokenMutex  sync.RWMutex
 }
 
+//special struct to hold the response of GET file upload url data. to further POST in aws of green invoice
+
+type UploadURLFields struct {
+	Key                 string `json:"key"`
+	Bucket              string `json:"bucket"`
+	XAmzAlgorithm       string `json:"X-Amz-Algorithm"`
+	XAmzCredential      string `json:"X-Amz-Credential"`
+	XAmzDate            string `json:"X-Amz-Date"`
+	XAmzSecurityToken   string `json:"X-Amz-Security-Token"`
+	Policy              string `json:"Policy"`
+	XAmzSignature       string `json:"X-Amz-Signature"`
+	XAmzMetaAccountID   string `json:"x-amz-meta-account-id"`
+	XAmzMetaUserID      string `json:"x-amz-meta-user-id"`
+	XAmzMetaBusinessID  string `json:"x-amz-meta-business-id"`
+	XAmzMetaFileContext string `json:"x-amz-meta-file-context"`
+	XAmzMetaFileData    string `json:"x-amz-meta-file-data"`
+}
+
+type UploadURLResponse struct {
+	URL    string          `json:"url"`
+	Fields UploadURLFields `json:"fields"`
+}
+
 func New(cfg config.AccountingConfig) (*Service, error) {
 	service := &Service{
 		cfg: cfg,
 		httpClient: &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: 20 * time.Second,
 		},
 	}
 
