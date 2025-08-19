@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/felixsolom/fetch-duck/internal/accountingservice"
 	"github.com/felixsolom/fetch-duck/internal/config"
 	"github.com/felixsolom/fetch-duck/internal/database"
 	"github.com/felixsolom/fetch-duck/internal/s3service"
@@ -28,6 +29,7 @@ type apiConfig struct {
 	GoogleConfig *oauth2.Config
 	App          config.AppConfig
 	S3           *s3service.Service
+	Accounting   *accountingservice.Service
 }
 
 func main() {
@@ -42,9 +44,15 @@ func main() {
 	}
 	log.Println("S3 services initialized successfully.")
 
+	accountingSvc, err := accountingservice.New(cfg.Accounting)
+	if err != nil {
+		log.Fatalf("Failed to create accountiing service: %v", err)
+	}
+	log.Println("Accounting service initialized successfully")
+
 	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatal("PORT environment variable is not set")
+		log.Fatal("PORT environment variable is not set.")
 	}
 
 	db, err := sql.Open("libsql", cfg.DB.URL)
@@ -62,6 +70,7 @@ func main() {
 		GoogleConfig: cfg.Google.ToOAuth2Confg(),
 		App:          cfg.App,
 		S3:           s3Svc,
+		Accounting:   accountingSvc,
 	}
 
 	r := chi.NewRouter()
