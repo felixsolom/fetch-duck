@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"sync"
 	"time"
@@ -151,4 +153,68 @@ func (s *Service) getUploadURL(ctx context.Context) (*UploadURLResponse, error) 
 		return nil, fmt.Errorf("failed to decode upload URL response: %w", err)
 	}
 	return &uploadURLresp, nil
+}
+
+func (s *Service) StagedInvoiceFile(ctx context.Context, filename string, fileData []byte) error {
+	log.Println("getting pre-signed URL for invoice upload...")
+	uploadConfig, err := s.getUploadURL(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get upload config: %w", err)
+	}
+	log.Printf("Uploading file %s to %s", filename, uploadConfig.URL)
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	fields := map[string]string{
+		"key":                     uploadConfig.Fields.Key,
+		"bucket":                  uploadConfig.Fields.Bucket,
+		"X-Amz-Algorithm":         uploadConfig.Fields.XAmzAlgorithm,
+		"X-Amz-Credential":        uploadConfig.Fields.XAmzCredential,
+		"X-Amz-Date":              uploadConfig.Fields.XAmzDate,
+		"X-Amz-Security-Token":    uploadConfig.Fields.XAmzSecurityToken,
+		"Policy":                  uploadConfig.Fields.Policy,
+		"X-Amz-Signature":         uploadConfig.Fields.XAmzSignature,
+		"x-amz-meta-account-id":   uploadConfig.Fields.XAmzMetaAccountID,
+		"x-amz-meta-user-id":      uploadConfig.Fields.XAmzMetaUserID,
+		"x-amz-meta-business-id":  uploadConfig.Fields.XAmzMetaBusinessID,
+		"x-amz-meta-file-context": uploadConfig.Fields.XAmzMetaFileContext,
+		"x-amz-meta-file-data":    uploadConfig.Fields.XAmzMetaFileData,
+	}
+
+	for key, val := range fields {
+		if err = w.WriteField(key, val); err != nil {
+			return fmt.Errorf("Failed to write field %s, %w", key, err)
+		}
+	}
+
+	fw, err := w.CreateFormFile("file", filename)
+	if err != nil {
+		return fmt.Errorf("failed to create form file: %w", err)
+	}
+
+	if _, err := fw.Write(fileData); err != nil {
+		return fmt.Errorf("failed to write file data to form: %w", err)
+	}
+
+	w.Close()
+
+	req, err := http.NewRequestWithContext(ctx, "POST", uploadConfig.URL, &b)
+	if err != nil {
+		return fmt.Errorf("failed to create final upload request: %w", err)
+	}
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to execute final upload request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode > 299 {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("final upload request failed with status: %s: %s", resp.Status, string(body))
+	}
+	log.Printf("Successfully staged invoice file: %s", filename)
+	return nil
 }
