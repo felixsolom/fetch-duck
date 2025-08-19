@@ -122,3 +122,33 @@ func (s *Service) getToken(ctx context.Context) (string, error) {
 	defer s.tokenMutex.RUnlock()
 	return s.token, nil
 }
+
+func (s *Service) getUploadURL(ctx context.Context) (*UploadURLResponse, error) {
+	token, err := s.getToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", s.cfg.BaseURL+"/expenses/file", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create upload URL request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer: "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := s.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute upload URL request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode > 299 {
+		return nil, fmt.Errorf("get upload URL failed with status: %s", resp.Status)
+	}
+
+	var uploadURLresp UploadURLResponse
+	if err := json.NewDecoder(resp.Body).Decode(&uploadURLresp); err != nil {
+		return nil, fmt.Errorf("failed to decode upload URL response: %w", err)
+	}
+	return &uploadURLresp, nil
+}
