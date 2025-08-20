@@ -9,6 +9,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -114,10 +115,10 @@ func (s *Service) getToken(ctx context.Context) (string, error) {
 	s.tokenMutex.RUnlock()
 
 	if isExpired {
-		log.Println("Accounting token is exipered, or about to expire. Refreshing...")
-	}
-	if err := s.refreshToken(ctx); err != nil {
-		return "", err
+		log.Println("Accounting token is expired, or about to expire. Refreshing...")
+		if err := s.refreshToken(ctx); err != nil {
+			return "", err
+		}
 	}
 
 	s.tokenMutex.RLock()
@@ -131,12 +132,28 @@ func (s *Service) getUploadURL(ctx context.Context) (*UploadURLResponse, error) 
 		return nil, err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "GET", s.cfg.BaseURL+"/expenses/file", nil)
+	log.Printf("DEBUG: Attempting to get upload URL with token: Bearer %s", token)
+	log.Printf("DEBUG: Token length: %d", len(token))
+
+	endpointURL := "https://apigw.greeninvoice.co.il/file-upload/v1/url"
+
+	u, err := url.Parse(endpointURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse upload endpoint URL: %w", err)
+	}
+
+	q := u.Query()
+	q.Set("context", "expense")
+	q.Set("data", `{"source": 5}`)
+	u.RawQuery = q.Encode()
+
+	finalURL := u.String()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", finalURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create upload URL request: %w", err)
 	}
-	req.Header.Set("Authorization", "Bearer: "+token)
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	resp, err := s.httpClient.Do(req)
 	if err != nil {
