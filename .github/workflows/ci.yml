@@ -30,6 +30,9 @@ jobs:
             PKGS=$(go list ./... | grep -v /vendor/)
             test -z "$(gofmt -d -s $PKGS)"
 
+       - name: Install dependencies 
+         run: go mod download
+
        - name: Run golangci-lint
          uses: golangci/golangci-lint-action@v3
          with:
