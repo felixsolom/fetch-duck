@@ -89,7 +89,10 @@ func StoreTokenInDB(ctx context.Context, db *database.Queries, userInfo *GoogleU
 
 func GenerateOauthStateString(w http.ResponseWriter, r *http.Request) string {
 	b := make([]byte, 16)
-	rand.Read(b)
+	_, err := rand.Read(b)
+	if err != nil {
+		log.Fatalf("Failed to generate random bytes for oauth state: %v", err)
+	}
 	state := base64.URLEncoding.EncodeToString(b)
 
 	http.SetCookie(w, &http.Cookie{

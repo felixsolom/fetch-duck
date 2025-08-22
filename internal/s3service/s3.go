@@ -23,7 +23,7 @@ func New(cfg config.AWSConfig) (*Service, error) {
 		awsconfig.WithRegion(cfg.Region),
 		awsconfig.WithCredentialsProvider(creds))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load AWS config")
+		return nil, fmt.Errorf("failed to load AWS config")
 	}
 
 	s3Client := s3.NewFromConfig(awsCfg)

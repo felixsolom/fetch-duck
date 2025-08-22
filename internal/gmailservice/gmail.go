@@ -130,17 +130,17 @@ func (s *Service) GetFirstAttachment(messageID string) (data []byte, filenane st
 
 	part, attachmentID := findAttachmemtPart(fullMsg.Payload)
 	if part == nil {
-		return nil, "", errors.New("No valid attachments found in message")
+		return nil, "", errors.New("no valid attachments found in message")
 	}
 
 	attachmentBody, err := s.Users.Messages.Attachments.Get("me", messageID, attachmentID).Do()
 	if err != nil {
-		return nil, "", fmt.Errorf("Failed to get attachment data for ID %w", err)
+		return nil, "", fmt.Errorf("failed to get attachment data for ID %w", err)
 	}
 
 	decodedData, err := base64.URLEncoding.DecodeString(attachmentBody.Data)
 	if err != nil {
-		return nil, "", fmt.Errorf("Failed to decode attachment data %w", err)
+		return nil, "", fmt.Errorf("failed to decode attachment data %w", err)
 	}
 
 	return decodedData, part.Filename, nil

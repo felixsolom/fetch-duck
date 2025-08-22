@@ -201,7 +201,7 @@ func (s *Service) StagedInvoiceFile(ctx context.Context, filename string, fileDa
 
 	for key, val := range fields {
 		if err = w.WriteField(key, val); err != nil {
-			return fmt.Errorf("Failed to write field %s, %w", key, err)
+			return fmt.Errorf("failed to write field %s, %w", key, err)
 		}
 	}
 
@@ -214,7 +214,10 @@ func (s *Service) StagedInvoiceFile(ctx context.Context, filename string, fileDa
 		return fmt.Errorf("failed to write file data to form: %w", err)
 	}
 
-	w.Close()
+	err = w.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close multipart writer: %w", err)
+	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", uploadConfig.URL, &b)
 	if err != nil {

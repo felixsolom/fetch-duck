@@ -1,0 +1,50 @@
+name: CI
+ # Trigger on pushes to any branch EXCEPT main, and on all pull requests to main.
+ # This ensures we check code quality before it gets merged.
+on:
+   push:
+     branches-ignore:
+       - 'main'
+   pull_request:
+     branches:
+       - 'main'
+
+jobs:
+   # A single job that runs all our quality checks.
+   lint-and-test:
+     name: Lint and Test
+     runs-on: ubuntu-latest
+
+     steps:
+       # 1. Check out the repository code.
+       - name: Checkout repository
+         uses: actions/checkout@v4
+
+       # 2. Set up Go, using the version from go.mod for consistency.
+       - name: Set up Go
+         uses: actions/setup-go@v5
+         with:
+           go-version-file: 'go.mod'
+           cache: true # Enable dependency caching
+
+       # 3. Check Go module integrity.
+       - name: Verify dependencies
+         run: go mod tidy
+
+       # 4. Check formatting. Your `go fmt` check was good. This is another way to do it.
+       - name: Check formatting
+         run: diff -u <(echo -n) <(gofmt -d -s .)
+
+       # 5. Run static analysis and linters using the industry-standard tool.
+       # This one tool can replace gosec and staticcheck with a single, configurable run.
+       - name: Run golangci-lint
+         uses: golangci/golangci-lint-action@v3
+         with:
+           # Using a specific version is recommended for reproducible builds.
+           version: v1.55
+
+       # 6. Run unit tests (we should add some!).
+       # The -race flag is excellent for detecting concurrency issues.
+       # The -v flag gives verbose output.
+       - name: Run tests
+         run: go test -v -race ./...
