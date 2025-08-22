@@ -70,7 +70,7 @@ func TestFindAttachmentPart(t *testing.T) {
 			payload: &gmail.MessagePart{
 				Parts: []*gmail.MessagePart{
 					{Filename: "", Body: &gmail.MessagePartBody{}},
-					{Filename: "inline-image.jpg", Body: &gmail.MessagePartBody{AttachmentId: ""}}, // image, not a real attachment
+					{Filename: "inline-image.jpg", Body: &gmail.MessagePartBody{AttachmentId: ""}},
 				},
 			},
 			expectedFound: false,
@@ -86,15 +86,15 @@ func TestFindAttachmentPart(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			foundPart, foundID := findAttachmemtPart(tc.payload)
 			if (foundPart != nil) != tc.expectedFound {
-				t.Errorf("Expected to find attachment: %v, but got: %v", tc.expectedFound, (foundPart != nil))
+				t.Errorf("expected to find attachment: %v, but got: %v", tc.expectedFound, (foundPart != nil))
 			}
 
 			if tc.expectedFound {
 				if foundID != tc.expectedID {
-					t.Errorf("Expected attachment ID %s, but got %s", tc.expectedID, foundID)
+					t.Errorf("expected attachment ID %s, but got %s", tc.expectedID, foundID)
 				}
 				if foundPart.Filename != tc.expectedFilename {
-					t.Errorf("Expected filename %s, but got %s", tc.expectedFilename, foundPart.Filename)
+					t.Errorf("expected filename %s, but got %s", tc.expectedFilename, foundPart.Filename)
 				}
 			}
 		})
