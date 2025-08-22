@@ -22,13 +22,8 @@ jobs:
            go-version-file: 'go.mod'
            cache: false 
 
-       - name: Install dependencies 
-         run: go mod download
-
-       - name: Verify and vendor dependencies
-         run: |
-            go mod tidy
-            go mod vendor
+       - name: Vendor dependencies
+         run: go mod vendor
 
        - name: Check formatting
          run: |
@@ -39,6 +34,7 @@ jobs:
          uses: golangci/golangci-lint-action@v3
          with:
            version: v1.55
+           args: --timeout=5m --mod=vendor
 
        - name: Run tests
          run: go test -v -race -mod=vendor ./...
