@@ -59,7 +59,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to open database connection: %v", err)
 	}
-	defer db.Close()
+
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("Warning: failed to close database connection: %v", err)
+		}
+	}()
 
 	dbQueries := database.New(db)
 	fmt.Println("Configuration loaded and database connection established")

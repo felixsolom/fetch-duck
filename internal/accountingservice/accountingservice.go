@@ -88,7 +88,12 @@ func (s *Service) refreshToken(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to execute token request: %w", err)
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("Warning: failed to close response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode > 299 {
 		return fmt.Errorf("token request failed with status: %s", resp.Status)
@@ -159,7 +164,12 @@ func (s *Service) getUploadURL(ctx context.Context) (*UploadURLResponse, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute upload URL request: %w", err)
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("Warning: failed to close response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode > 299 {
 		return nil, fmt.Errorf("get upload URL failed with status: %s", resp.Status)
@@ -201,7 +211,7 @@ func (s *Service) StagedInvoiceFile(ctx context.Context, filename string, fileDa
 
 	for key, val := range fields {
 		if err = w.WriteField(key, val); err != nil {
-			return fmt.Errorf("Failed to write field %s, %w", key, err)
+			return fmt.Errorf("failed to write field %s, %w", key, err)
 		}
 	}
 
@@ -214,7 +224,10 @@ func (s *Service) StagedInvoiceFile(ctx context.Context, filename string, fileDa
 		return fmt.Errorf("failed to write file data to form: %w", err)
 	}
 
-	w.Close()
+	err = w.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close multipart writer: %w", err)
+	}
 
 	req, err := http.NewRequestWithContext(ctx, "POST", uploadConfig.URL, &b)
 	if err != nil {
@@ -226,7 +239,12 @@ func (s *Service) StagedInvoiceFile(ctx context.Context, filename string, fileDa
 	if err != nil {
 		return fmt.Errorf("failed to execute final upload request: %w", err)
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("Warning: failed to close response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode > 299 {
 		body, _ := io.ReadAll(resp.Body)

@@ -1,0 +1,39 @@
+name: CI
+on:
+   push:
+     branches-ignore:
+       - 'main'
+   pull_request:
+     branches:
+       - 'main'
+
+jobs:
+   lint-and-test:
+     name: Lint and Test
+     runs-on: ubuntu-latest
+
+     steps:
+       - name: Checkout repository
+         uses: actions/checkout@v4
+
+       - name: Set up Go
+         uses: actions/setup-go@v5
+         with:
+           go-version-file: 'go.mod'
+           cache: false 
+
+       - name: Vendor dependencies
+         run: go mod vendor
+
+       - name: Check formatting
+         run: |
+            PKGS=$(go list ./... | grep -v /vendor/)
+            test -z "$(gofmt -d -s $PKGS)"
+
+       - name: Run golangci-lint
+         uses: golangci/golangci-lint-action@v8
+         with:
+           version: v2.1
+
+       - name: Run tests
+         run: go test -v -race -mod=vendor ./...

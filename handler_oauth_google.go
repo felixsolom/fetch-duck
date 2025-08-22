@@ -59,7 +59,10 @@ func (cfg *apiConfig) handlerOAuthGoogleCallback(w http.ResponseWriter, r *http.
 	log.Printf("Successfully authenticated user: %s", userInfo.Email)
 
 	sessionTokenBytes := make([]byte, 32)
-	rand.Read(sessionTokenBytes)
+	_, err = rand.Read(sessionTokenBytes)
+	if err != nil {
+		log.Fatalf("Failed to generate random bytes for oauth state: %v", err)
+	}
 	sessionToken := hex.EncodeToString(sessionTokenBytes)
 
 	expiry := time.Now().Add(24 * time.Hour)
