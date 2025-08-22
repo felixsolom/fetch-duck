@@ -34,7 +34,7 @@ jobs:
          uses: golangci/golangci-lint-action@v3
          with:
            version: v1.55
-           args: --timeout=5m --mod=vendor
+           args: --timeout=5m -mod=vendor
 
        - name: Run tests
          run: go test -v -race -mod=vendor ./...
