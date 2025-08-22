@@ -240,7 +240,11 @@ func (s *Service) StagedInvoiceFile(ctx context.Context, filename string, fileDa
 		return fmt.Errorf("failed to execute final upload request: %w", err)
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("Warning: failed to close response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode > 299 {
 		body, _ := io.ReadAll(resp.Body)
