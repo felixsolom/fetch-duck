@@ -20,24 +20,26 @@ jobs:
          uses: actions/setup-go@v5
          with:
            go-version-file: 'go.mod'
-           cache: true 
+           cache: false 
 
        - name: Verify dependencies
          run: go mod tidy
+
+       - name: Install dependencies 
+         run: go mod download
+
+       - name: Vendor dependencies
+         run: go mod vendor
 
        - name: Check formatting
          run: |
             PKGS=$(go list ./... | grep -v /vendor/)
             test -z "$(gofmt -d -s $PKGS)"
 
-       - name: Install dependencies 
-         run: go mod download
-
        - name: Run golangci-lint
          uses: golangci/golangci-lint-action@v3
          with:
-
            version: v1.55
 
        - name: Run tests
-         run: go test -v -race ./...
+         run: go test -v -race -mod=vendor ./...
