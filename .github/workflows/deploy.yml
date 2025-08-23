@@ -12,8 +12,7 @@ env:
 jobs:
     deploy:
         name: Deploy
-        runs-on: Ubuntu-latests
-
+        runs-on: Ubuntu-latest
         permissions:
             contents: 'read'
             id-token: 'write'
