@@ -1,3 +1,5 @@
+![completion badge](https://github.com/felixsolom/learn-cicd-starter/actions/workflows/ci.yml/badge.svg)
+
 # fetch-duck
 fetch - duck is a mail scrapper that seeks accounting documents and uploads them to accounting api of (hopefully some day) your choice, but for now, my choice. 
 
