@@ -20,6 +20,14 @@ jobs:
         steps:
             - name: Checkout repository
               uses: actions/checkout@v4
+              
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                go-version-file: 'go.mod'
+
+            - name: Build Go Application
+              run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o fetch-duck .
 
             - name: Authenticate to Google Cloud
               uses: 'google-github-actions/auth@v2'
