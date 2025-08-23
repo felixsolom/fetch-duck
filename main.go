@@ -17,12 +17,16 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/pressly/goose/v3"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
 	"golang.org/x/oauth2"
 )
 
 //go:embed all:static
 var staticFiles embed.FS
+
+//go:embed sql/schema/*.sql
+var migrationFiles embed.FS
 
 type apiConfig struct {
 	DB           *database.Queries
@@ -65,6 +69,18 @@ func main() {
 			log.Printf("Warning: failed to close database connection: %v", err)
 		}
 	}()
+
+	log.Println("Running database migrations...")
+	goose.SetBaseFS(migrationFiles)
+
+	if err := goose.SetDialect("sqlite3"); err != nil {
+		log.Fatalf("Failed to set goose dialect: %v", err)
+	}
+
+	if err := goose.Up(db, "sql/schema"); err != nil {
+		log.Fatalf("Failed to run goose migrations: %v", err)
+	}
+	log.Println("Database migrations completed successfully.")
 
 	dbQueries := database.New(db)
 	fmt.Println("Configuration loaded and database connection established")
