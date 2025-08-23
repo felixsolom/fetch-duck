@@ -43,5 +43,4 @@ jobs:
               with:
                 service: ${{ env.SERVICE_NAME }}
                 region: ${{ env.GAR_LOCATION }}
-                image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/
-                   ${{env.GAR_REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+                image: ${{ env.GAR_LOCATION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.GAR_REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
