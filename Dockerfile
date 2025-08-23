@@ -1,22 +1,11 @@
-FROM golang:1.24.5-alpine AS builder
+FROM gcr.io/distroless/static-debian11
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . .
-
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/fetch-duck -ldflags="-w -s" .
-
-FROM gcr.io/distroless/static-debian11
-
-COPY --from=builder /app/fetch-duck .
-
-COPY --from=builder /app/static ./static 
+COPY fetch-duck .
 
 EXPOSE 8080
 
-USER nonroot:nonroot
+USER 65532:65532
 
-ENTRYPOINT [ "app/fetch-duck" ]
+ENTRYPOINT ["/app/fetch-duck"]
