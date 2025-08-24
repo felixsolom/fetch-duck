@@ -48,11 +48,16 @@ type Config struct {
 func Load() (*Config, error) {
 	_ = godotenv.Load()
 
+	redirectURL := os.Getenv("GOOGLE_REDIRECT_URL")
+	if redirectURL == "" {
+		redirectURL = "http://localhost:8080/api/v1/oauth/google/callback"
+	}
+
 	cfg := &Config{
 		Google: GoogleConfig{
 			ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 			ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-			RedirectURL:  "http://localhost:8080/api/v1/oauth/google/callback",
+			RedirectURL:  redirectURL,
 			Scopes: []string{
 				"https://www.googleapis.com/auth/gmail.readonly",
 				"https://www.googleapis.com/auth/userinfo.email",
