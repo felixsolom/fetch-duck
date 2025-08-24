@@ -107,6 +107,10 @@ This project is a complete, production-ready system demonstrating a full softwar
      *   Navigate to `http://localhost:8080` in your web browser.
 
 
+## 🤝 Contributing
+Contributions are welcome and greatly appreciated! Whether it's reporting a bug, suggesting a feature, or submitting a code change, every contribution helps.
+
+
 
 ## 🤔 Architectural Decisions & Lessons Learned
 
@@ -139,4 +143,3 @@ microservices architecture.
 ## The Why
 As a small business owner, I've been dealing with admin myself with different degrees of success for some time now. And sure I've heard of people that are amazing and maticulous with gathering every piece of receipt from buying a car to paying a cab driver, but I'm not like that, keeping track of menial receipts never was a priority, and yet. it is important. And so fetch-duck comes into play. What's better thah full automation of your gmail invoice stream into one background nice process, that also takes care of uploading it to you neighbor friendly acounting API? Yes, exactly, nothing. And this is how fetch - duck idea was born. 
 That, or my wife told me about some app that does it, and I retorted, buying this? No way. I'm building it myself. 
-
